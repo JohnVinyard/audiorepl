@@ -74,7 +74,7 @@ setup(
         author='John Vinyard',
         author_email='john.vinyard@gmail.com',
         long_description=read('README.md'),
-        package_data={'audiorepl': c_ext + pyx_ext},
+        package_data={'': c_ext + pyx_ext},
         include_package_data=True,
         packages=['audiorepl'],
         install_requires=['numpy', 'cython']
