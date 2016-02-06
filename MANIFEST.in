@@ -1,3 +1,7 @@
 include README.md
 include MANIFEST.in
 include dependencies.sh
+include audiorepl/cplay.c
+include audiorepl/cplay.h
+include audiorepl/play.pyx
+include audiorepl/play.pyxbld
