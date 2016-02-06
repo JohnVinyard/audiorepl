@@ -2,7 +2,6 @@ from time import sleep
 import numpy as np
 from bufferbabysitter import BufferBabysitter
 import pyximport
-
 pyximport.install()
 from play import start, stop, usecs, put, cancel_all
 
