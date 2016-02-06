@@ -1,7 +1,6 @@
-import sys
 import os
-import string
 import subprocess
+import sys
 
 # KLUDGE: Is there a better way to get setuptools commands?
 install = 'install' in sys.argv[1:]
@@ -24,8 +23,11 @@ if install:
 # At this point, setuptools should be available
 from setuptools import setup
 
+
 if install:
     run_command('pip install numpy')
+    run_command('pip install cython')
+    run_command('cython audiorepl/play.pyx')
 
 
 def setup_jack_audio():
