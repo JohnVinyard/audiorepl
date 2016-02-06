@@ -92,10 +92,11 @@ def build_extension():
     p = subprocess.Popen(cmd, shell=True)
     p.wait()
 
+    run_command('cython audiorepl/play.pyx')
     import numpy as np
     return Extension(
         name='play',
-        sources=['audiorepl/play.pyx'],
+        sources=['audiorepl/play.c'],
         libraries=jacklibs,
         include_dirs=['audiorepl', np.get_include()],
         extra_objects=[obj],
