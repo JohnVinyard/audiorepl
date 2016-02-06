@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import re
 
 # KLUDGE: Is there a better way to get setuptools commands?
 install = 'install' in sys.argv[1:]
@@ -22,12 +23,11 @@ if install:
 
 # At this point, setuptools should be available
 from setuptools import setup
-
+from setuptools.extension import Extension
 
 if install:
     run_command('pip install numpy')
     run_command('pip install cython')
-    run_command('cython audiorepl/play.pyx')
 
 
 def setup_jack_audio():
@@ -66,8 +66,46 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-c_ext = ['*.c', '*.h']
-pyx_ext = ['*.pyx', '*.pyxbld']
+def build_extension():
+    p = subprocess.Popen(
+            'pkg-config --cflags --libs jack',
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+    p.wait()
+    pkgconfig_output = p.stdout.read()
+    p.stdout.close()
+    p.stderr.close()
+    r = re.compile('-l(?P<libname>[^\s]+)')
+    jacklibs = r.findall(pkgconfig_output)
+
+    dir = 'audiorepl'
+    obj = os.path.join(dir, 'cplay.o')
+
+    # Build the C library
+    # KLUDGE: THIS IS A HACK! Figure out how to use distutils to accomplish
+    # this in a cross-platform way.
+    libflags = ' '.join(['-l' + lib for lib in jacklibs])
+    cfile = os.path.join(dir, 'cplay.c')
+    output = os.path.join(dir, 'cplay.o')
+    cmd = 'gcc -fPIC %s -I%s -c %s -o %s' % (libflags, dir, cfile, output)
+    p = subprocess.Popen(cmd, shell=True)
+    p.wait()
+
+    import numpy as np
+    return Extension(
+        name='play',
+        sources=['audiorepl/play.pyx'],
+        libraries=jacklibs,
+        include_dirs=['audiorepl', np.get_include()],
+        extra_objects=[obj],
+        extra_compile_args=[
+            '-shared', '-pthread', '-fPIC', '-fwrapv',
+            '-O2', '-Wall', '-fno-strict-aliasing'])
+
+
+# c_ext = ['*.c', '*.h', '*.o']
+# pyx_ext = ['*.pyx', '*.pyxbld']
 
 setup(
         name='audiorepl',
@@ -76,10 +114,9 @@ setup(
         author='John Vinyard',
         author_email='john.vinyard@gmail.com',
         long_description=read('README.md'),
-        package_data={'': c_ext + pyx_ext},
-        include_package_data=True,
         packages=['audiorepl'],
-        install_requires=['numpy', 'cython']
+        install_requires=['numpy', 'cython'],
+        ext_modules=[build_extension()]
 )
 
 if install:
