@@ -104,10 +104,6 @@ def build_extension():
             '-shared', '-pthread', '-fPIC', '-fwrapv',
             '-O2', '-Wall', '-fno-strict-aliasing'])
 
-
-# c_ext = ['*.c', '*.h', '*.o']
-# pyx_ext = ['*.pyx', '*.pyxbld']
-
 setup(
         name='audiorepl',
         version='0.1',
